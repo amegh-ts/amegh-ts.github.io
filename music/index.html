@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEON PULSE — Sound of the Future</title>
+<meta name="description" content="A 3D parallax, futuristic music experience with a live generative synth.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;800&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#05030f;--c1:#00f0ff;--c2:#ff2bd6;--c3:#8a5cff;--tx:#e8ecff;--mut:#8b90b8}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--tx);font-family:'Rajdhani',system-ui,sans-serif;font-size:18px;overflow-x:hidden}
+h1,h2,h3,.logo,.btn{font-family:'Orbitron',system-ui,sans-serif}
+
+/* ---------- fixed 3D backdrop ---------- */
+#stage{position:fixed;inset:0;perspective:900px;overflow:hidden;z-index:0;
+  background:radial-gradient(ellipse at 50% 35%,#1b0a3d 0%,#07041a 55%,#030209 100%)}
+#world{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.layer{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}
+.stars i{position:absolute;width:2px;height:2px;border-radius:50%;background:#fff;box-shadow:0 0 6px #fff}
+.sun{position:absolute;left:50%;top:38%;width:min(46vw,460px);aspect-ratio:1;margin:calc(min(46vw,460px)/-2) 0 0 calc(min(46vw,460px)/-2);border-radius:50%;
+  background:linear-gradient(#ffe45e 0%,#ff2bd6 55%,#8a5cff 100%);
+  -webkit-mask:repeating-linear-gradient(#000 0 14px,transparent 14px 18px);mask:linear-gradient(#000,#000);
+  filter:drop-shadow(0 0 60px #ff2bd6aa)}
+.sun::after{content:"";position:absolute;inset:55% 0 0;background:repeating-linear-gradient(transparent 0 8px,var(--bg) 8px 13px)}
+.ring{position:absolute;left:50%;top:50%;border-radius:50%;border:2px solid var(--c1);box-shadow:0 0 25px var(--c1),inset 0 0 25px var(--c1);opacity:.55}
+.floor{position:absolute;left:-50%;width:200%;bottom:-10%;height:62%;transform-origin:50% 100%;transform:rotateX(72deg);
+  background:
+   linear-gradient(90deg,transparent 0 calc(100% - 2px),var(--c2) 0) 0 0/90px 90px,
+   linear-gradient(transparent calc(100% - 2px),var(--c1) 0) 0 0/90px 90px;
+  filter:drop-shadow(0 0 6px var(--c2));animation:grid 1.6s linear infinite;
+  -webkit-mask:linear-gradient(transparent,#000 70%);mask:linear-gradient(transparent,#000 70%)}
+@keyframes grid{to{background-position:0 90px,0 90px}}
+.shape{position:absolute;transform-style:preserve-3d;animation:spin 18s linear infinite}
+.shape b{position:absolute;inset:0;border:1.5px solid var(--c1);background:rgba(0,240,255,.05);box-shadow:0 0 18px #00f0ff55}
+.shape.m b{border-color:var(--c2);background:rgba(255,43,214,.06);box-shadow:0 0 18px #ff2bd655}
+@keyframes spin{to{transform:rotateX(360deg) rotateY(360deg)}}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at center,transparent 45%,#000a 100%)}
+.scan{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.18;background:repeating-linear-gradient(transparent 0 2px,#000 2px 3px)}
+
+/* ---------- ui ---------- */
+nav{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:18px 5vw;
+  backdrop-filter:blur(10px);background:linear-gradient(#05030fcc,transparent)}
+.logo{font-weight:800;letter-spacing:.2em;font-size:1.05rem}
+.logo span{color:var(--c1);text-shadow:0 0 12px var(--c1)}
+nav ul{display:flex;gap:2rem;list-style:none}
+nav a{color:var(--tx);text-decoration:none;text-transform:uppercase;letter-spacing:.2em;font-size:.85rem;position:relative}
+nav a::after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:var(--c1);box-shadow:0 0 8px var(--c1);transition:.3s}
+nav a:hover::after{width:100%}
+main{position:relative;z-index:5;text-shadow:0 2px 14px #05030f,0 0 4px #05030f}
+.sub,.lead{color:#b9bde0!important}
+section{min-height:100vh;padding:120px 6vw 80px;display:flex;flex-direction:column;justify-content:center}
+#hero{align-items:center;text-align:center;perspective:1000px}
+#hero .inner{transform-style:preserve-3d;will-change:transform}
+.eyebrow{letter-spacing:.5em;color:var(--c1);text-transform:uppercase;font-size:.9rem;transform:translateZ(40px)}
+h1{font-size:clamp(2.8rem,10vw,8rem);line-height:1;font-weight:800;letter-spacing:.06em;margin:.3em 0;transform:translateZ(110px);
+  background:linear-gradient(90deg,var(--c1),var(--c3),var(--c2));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 22px #8a5cff88);position:relative}
+h1::before,h1::after{content:attr(data-t);position:absolute;inset:0;background:inherit;-webkit-background-clip:text;background-clip:text;opacity:.0}
+h1.glitch::before{opacity:.8;transform:translate(-4px,0);clip-path:inset(20% 0 55% 0);filter:hue-rotate(90deg)}
+h1.glitch::after{opacity:.8;transform:translate(4px,0);clip-path:inset(60% 0 10% 0);filter:hue-rotate(-90deg)}
+.sub{max-width:36ch;margin:0 auto 2rem;color:var(--mut);font-size:1.25rem;transform:translateZ(60px)}
+.btn{display:inline-block;padding:15px 34px;border:1.5px solid var(--c1);color:var(--c1);background:#00f0ff10;text-transform:uppercase;letter-spacing:.25em;font-size:.8rem;font-weight:500;
+  cursor:pointer;transition:.3s;clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);transform:translateZ(80px)}
+.btn:hover{background:var(--c1);color:#05030f;box-shadow:0 0 35px var(--c1)}
+.scroll{position:absolute;bottom:28px;left:50%;translate:-50% 0;color:var(--mut);font-size:.75rem;letter-spacing:.4em;text-transform:uppercase}
+.scroll::after{content:"";display:block;margin:10px auto 0;width:1px;height:40px;background:linear-gradient(var(--c1),transparent);animation:drip 1.6s infinite}
+@keyframes drip{0%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}51%{transform-origin:bottom}100%{transform:scaleY(0);transform-origin:bottom}}
+
+h2{font-size:clamp(1.8rem,5vw,3.4rem);letter-spacing:.12em;margin-bottom:.4em;text-transform:uppercase}
+h2 em{font-style:normal;color:var(--c2);text-shadow:0 0 18px var(--c2)}
+.lead{color:var(--mut);max-width:52ch;margin-bottom:2.5rem}
+.reveal{opacity:0;transform:translateY(60px) rotateX(18deg);transition:1s cubic-bezier(.2,.8,.2,1);transform-origin:50% 100%}
+.reveal.in{opacity:1;transform:none}
+
+/* track cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:28px;perspective:1200px}
+.card{position:relative;padding:26px;border:1px solid #ffffff22;background:linear-gradient(145deg,#ffffff12,#ffffff04);backdrop-filter:blur(14px);
+  transform-style:preserve-3d;transition:transform .15s ease-out,box-shadow .3s;cursor:pointer;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--mx,50%) var(--my,0%),#ffffff2a,transparent 55%);pointer-events:none}
+.card:hover,.card.on{box-shadow:0 0 40px var(--glow,#00f0ff55);border-color:var(--glow,var(--c1))}
+.art{aspect-ratio:1;margin-bottom:18px;transform:translateZ(50px);position:relative;display:grid;place-items:center;overflow:hidden;
+  background:conic-gradient(from var(--a,0deg),var(--g1),var(--g2),var(--g1));box-shadow:0 20px 40px #0008}
+.card.on .art{animation:rot 6s linear infinite}
+@property --a{syntax:'<angle>';inherits:false;initial-value:0deg}
+@keyframes rot{to{--a:360deg}}
+.art svg{width:42%;fill:#fff;filter:drop-shadow(0 0 10px #000a)}
+.card h3{font-size:1.1rem;letter-spacing:.1em;transform:translateZ(40px)}
+.card p{color:var(--mut);font-size:.95rem;transform:translateZ(25px)}
+.tag{position:absolute;top:14px;right:14px;font-size:.7rem;letter-spacing:.2em;color:var(--glow);transform:translateZ(60px)}
+
+/* player */
+.player{margin-top:50px;border:1px solid #ffffff22;background:#0a0620aa;backdrop-filter:blur(14px);padding:22px;display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+.play{width:64px;height:64px;border-radius:50%;border:2px solid var(--c1);background:transparent;color:var(--c1);cursor:pointer;display:grid;place-items:center;box-shadow:0 0 22px #00f0ff66;transition:.3s}
+.play:hover{background:var(--c1);color:#05030f}
+.play svg{width:26px;fill:currentColor}
+#viz{width:100%;height:120px;display:block}
+.now{font-family:Orbitron;letter-spacing:.15em;font-size:.85rem;margin-bottom:6px;color:var(--c1)}
+
+/* tour */
+.tour{list-style:none;border-top:1px solid #ffffff22}
+.tour li{display:grid;grid-template-columns:110px 1fr auto;gap:20px;align-items:center;padding:20px 8px;border-bottom:1px solid #ffffff22;transition:.3s}
+.tour li:hover{background:linear-gradient(90deg,#ff2bd622,transparent);padding-left:22px}
+.tour .d{font-family:Orbitron;color:var(--c2)}
+.tour .btn{transform:none;padding:10px 20px}
+footer{position:relative;z-index:5;text-align:center;padding:50px 5vw;color:var(--mut);letter-spacing:.2em;font-size:.8rem;text-transform:uppercase}
+
+@media(max-width:700px){nav ul{gap:1rem}nav a{font-size:.7rem;letter-spacing:.1em}.player{grid-template-columns:1fr}.tour li{grid-template-columns:1fr auto}.tour .d{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.reveal{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+
+<div id="stage" aria-hidden="true">
+  <div id="world">
+    <div class="layer stars" data-depth="0.15" id="stars-far"></div>
+    <div class="layer" data-depth="0.3"><div class="sun"></div></div>
+    <div class="layer stars" data-depth="0.5" id="stars-near"></div>
+    <div class="layer" data-depth="0.7" id="rings"></div>
+    <div class="layer" data-depth="1.0" id="shapes"></div>
+    <div class="layer" data-depth="0.9"><div class="floor"></div></div>
+  </div>
+</div>
+<div class="vignette"></div><div class="scan"></div>
+
+<nav>
+  <div class="logo">NEON<span>PULSE</span></div>
+  <ul><li><a href="#tracks">Tracks</a></li><li><a href="#listen">Listen</a></li><li><a href="#tour">Tour</a></li></ul>
+</nav>
+
+<main>
+  <section id="hero">
+    <div class="inner" id="heroInner">
+      <p class="eyebrow">New album · 2087</p>
+      <h1 id="title" data-t="NEON PULSE">NEON PULSE</h1>
+      <p class="sub">Synthetic heartbeats from a city that never powers down.</p>
+      <a class="btn" href="#listen" id="cta">Enter the signal</a>
+    </div>
+    <div class="scroll">Scroll</div>
+  </section>
+
+  <section id="tracks">
+    <h2 class="reveal">Latest <em>Transmissions</em></h2>
+    <p class="lead reveal">Every track below is synthesized live in your browser. Pick one and hear it.</p>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="listen">
+    <h2 class="reveal">Live <em>Signal</em></h2>
+    <p class="lead reveal">Real-time frequency analysis of whatever is playing.</p>
+    <div class="player reveal">
+      <button class="play" id="play" aria-label="Play / pause"><svg viewBox="0 0 24 24" id="playIcon"><path d="M7 4l13 8-13 8z"/></svg></button>
+      <div><div class="now" id="now">Select a track</div><canvas id="viz"></canvas></div>
+    </div>
+  </section>
+
+  <section id="tour">
+    <h2 class="reveal">World <em>Tour</em></h2>
+    <ul class="tour reveal">
+      <li><span class="d">12 · 03</span><span>Neo Tokyo — Chrome Dome</span><a class="btn">Tickets</a></li>
+      <li><span class="d">19 · 03</span><span>Berlin — Void Hangar</span><a class="btn">Tickets</a></li>
+      <li><span class="d">02 · 04</span><span>Los Angeles — Hologram Arena</span><a class="btn">Tickets</a></li>
+      <li><span class="d">15 · 04</span><span>Mars Colony — Dome 7</span><a class="btn">Sold out</a></li>
+    </ul>
+  </section>
+</main>
+<footer>© 2087 Neon Pulse · All frequencies reserved</footer>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), rnd=(a,b)=>a+Math.random()*(b-a);
+
+/* ---------- build backdrop ---------- */
+function stars(id,n,size){const el=$(id);for(let i=0;i<n;i++){const s=document.createElement('i');
+  s.style.cssText=`left:${rnd(0,100)}%;top:${rnd(0,100)}%;opacity:${rnd(.3,1)};width:${size*rnd(.6,1.4)}px;height:${size*rnd(.6,1.4)}px`;el.appendChild(s)}}
+stars('#stars-far',90,2);stars('#stars-near',45,3);
+[[260,-380],[420,-700],[620,-1100]].forEach(([s,z],i)=>{const r=document.createElement('div');r.className='ring';
+  r.style.cssText=`width:${s}px;height:${s}px;margin:${-s/2}px;transform:translateZ(${z}px) rotateX(${60+i*8}deg);${i==1?'border-color:#ff2bd6;box-shadow:0 0 25px #ff2bd6,inset 0 0 25px #ff2bd6':''}`;$('#rings').appendChild(r)});
+for(let i=0;i<9;i++){const sz=rnd(36,90),sh=document.createElement('div');sh.className='shape'+(i%2?' m':'');
+  sh.style.cssText=`width:${sz}px;height:${sz}px;left:${rnd(4,92)}%;top:${rnd(8,85)}%;animation-duration:${rnd(14,32)}s;translate:0 0 ${rnd(-500,250)}px`;
+  ['translateZ(%d)','rotateY(90deg) translateZ(%d)','rotateY(180deg) translateZ(%d)','rotateY(-90deg) translateZ(%d)','rotateX(90deg) translateZ(%d)','rotateX(-90deg) translateZ(%d)']
+   .forEach(t=>{const f=document.createElement('b');f.style.transform=t.replace('%d',sz/2+'px');sh.appendChild(f)});
+  $('#shapes').appendChild(sh)}
+
+/* ---------- parallax: mouse + scroll + device tilt ---------- */
+const world=$('#world'),layers=[...document.querySelectorAll('.layer')],heroInner=$('#heroInner');
+let mx=0,my=0,tx=0,ty=0,sy=0;
+addEventListener('pointermove',e=>{tx=e.clientX/innerWidth-.5;ty=e.clientY/innerHeight-.5});
+addEventListener('deviceorientation',e=>{if(e.gamma==null)return;tx=Math.max(-.5,Math.min(.5,e.gamma/60));ty=Math.max(-.5,Math.min(.5,(e.beta-45)/90))});
+addEventListener('scroll',()=>sy=scrollY,{passive:true});
+let energy=0;
+(function loop(){
+  mx+=(tx-mx)*.06;my+=(ty-my)*.06;
+  world.style.transform=`rotateY(${mx*7}deg) rotateX(${-my*5}deg)`;
+  layers.forEach(l=>{const d=+l.dataset.depth;
+    l.style.transform=`translate3d(${-mx*80*d}px,${-my*60*d - sy*d*.35}px,${sy*d*.6 + energy*40*d}px)`});
+  heroInner.style.transform=`rotateY(${mx*10}deg) rotateX(${-my*8}deg) translateY(${sy*.25}px)`;
+  heroInner.style.opacity=Math.max(0,1-sy/(innerHeight*.8));
+  requestAnimationFrame(loop)})();
+
+/* glitch title */
+const title=$('#title');setInterval(()=>{title.classList.add('glitch');setTimeout(()=>title.classList.remove('glitch'),160)},3800);
+
+/* reveal on scroll */
+const io=new IntersectionObserver(es=>es.forEach(e=>e.isIntersecting&&e.target.classList.add('in')),{threshold:.15});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ---------- tracks ---------- */
+const T=[
+ {name:'Chrome Horizon',tag:'128 BPM',desc:'Driving arps over a rolling bass.',bpm:128,root:45,scale:[0,3,5,7,10],wave:'sawtooth',g1:'#00f0ff',g2:'#8a5cff'},
+ {name:'Midnight Circuit',tag:'96 BPM',desc:'Slow, hazy and neon-drenched.',bpm:96,root:40,scale:[0,2,3,7,8],wave:'square',g1:'#ff2bd6',g2:'#ffb347'},
+ {name:'Ghost in the Grid',tag:'140 BPM',desc:'Fast, glitchy, relentless.',bpm:140,root:47,scale:[0,1,5,7,8],wave:'triangle',g1:'#8a5cff',g2:'#00ffa3'},
+ {name:'Solar Drift',tag:'110 BPM',desc:'Warm pads and floating leads.',bpm:110,root:43,scale:[0,2,4,7,9],wave:'sawtooth',g1:'#ffe45e',g2:'#ff2bd6'}];
+const cards=$('#cards');
+T.forEach((t,i)=>{const c=document.createElement('div');c.className='card reveal';c.style.setProperty('--glow',t.g1);c.style.setProperty('--g1',t.g1);c.style.setProperty('--g2',t.g2);c.style.transitionDelay=i*90+'ms';
+  c.innerHTML=`<span class="tag">${t.tag}</span><div class="art"><svg viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></svg></div><h3>${t.name}</h3><p>${t.desc}</p>`;
+  c.onclick=()=>select(i);
+  c.addEventListener('pointermove',e=>{const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+    c.style.transition='transform .1s';c.style.transform=`rotateY(${(x-.5)*22}deg) rotateX(${(.5-y)*22}deg) scale(1.03)`;c.style.setProperty('--mx',x*100+'%');c.style.setProperty('--my',y*100+'%')});
+  c.addEventListener('pointerleave',()=>{c.style.transition='transform .6s';c.style.transform=''});
+  io.observe(c);cards.appendChild(c)});
+
+/* ---------- generative synth ---------- */
+let ac,master,an,cur=-1,playing=false,timer,step=0,nextT=0;
+const hz=m=>440*2**((m-69)/12);
+function init(){if(ac)return;ac=new (window.AudioContext||window.webkitAudioContext)();
+  master=ac.createGain();master.gain.value=.5;an=ac.createAnalyser();an.fftSize=256;an.smoothingTimeConstant=.82;
+  const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=3200;
+  const dl=ac.createDelay();dl.delayTime.value=.28;const fb=ac.createGain();fb.gain.value=.35;dl.connect(fb);fb.connect(dl);
+  master.connect(lp);lp.connect(an);an.connect(ac.destination);lp.connect(dl);dl.connect(an);window._lp=lp}
+function note(f,t,d,type,vol,det=0){const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;o.detune.value=det;
+  g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(master);o.start(t);o.stop(t+d+.05)}
+function kick(t){const o=ac.createOscillator(),g=ac.createGain();o.frequency.setValueAtTime(150,t);o.frequency.exponentialRampToValueAtTime(40,t+.15);
+  g.gain.setValueAtTime(.9,t);g.gain.exponentialRampToValueAtTime(.001,t+.25);o.connect(g);g.connect(master);o.start(t);o.stop(t+.3)}
+function hat(t){const b=ac.createBuffer(1,ac.sampleRate*.05,ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+  const s=ac.createBufferSource(),g=ac.createGain(),h=ac.createBiquadFilter();h.type='highpass';h.frequency.value=7000;s.buffer=b;g.gain.value=.25;s.connect(h);h.connect(g);g.connect(master);s.start(t)}
+function schedule(){const t=T[cur],sd=60/t.bpm/4,prog=[0,0,3,2];
+  while(nextT<ac.currentTime+.25){
+    const bar=Math.floor(step/16)%4,s=step%16,deg=prog[bar];
+    if(s%4==0)kick(nextT);
+    if(s%2==1)hat(nextT);
+    if(s%8==0||s==6||s==14)note(hz(t.root+t.scale[deg%5]-12),nextT,sd*3,'sawtooth',.28);
+    const k=(step*7+bar*3)%t.scale.length,oct=[12,24,24,36][(step>>2)%4];
+    if(Math.random()<.78)note(hz(t.root+t.scale[k]+oct),nextT,sd*2.2,t.wave,.1,Math.random()*12-6);
+    if(s==0)[0,2,4].forEach(j=>note(hz(t.root+t.scale[(deg+j)%5]+12),nextT,sd*15,'triangle',.07));
+    nextT+=sd;step++}}
+function select(i){init();ac.resume();cur=i;step=0;nextT=ac.currentTime+.05;
+  document.querySelectorAll('.card').forEach((c,j)=>c.classList.toggle('on',j==i));
+  $('#now').textContent='▶ '+T[i].name.toUpperCase()+' — '+T[i].tag;setPlay(true)}
+function setPlay(p){playing=p;clearInterval(timer);if(p)timer=setInterval(schedule,50);
+  $('#playIcon').innerHTML=p?'<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>':'<path d="M7 4l13 8-13 8z"/>';
+  if(!p&&ac){ac.suspend()}else if(ac){ac.resume();nextT=Math.max(nextT,ac.currentTime+.05)}}
+$('#play').onclick=()=>{if(cur<0)return select(0);setPlay(!playing)};
+$('#cta').addEventListener('click',()=>{});
+
+/* ---------- visualizer ---------- */
+const cv=$('#viz'),cx=cv.getContext('2d');
+function size(){const r=devicePixelRatio||1;cv.width=cv.clientWidth*r;cv.height=cv.clientHeight*r}size();addEventListener('resize',size);
+const buf=new Uint8Array(128);
+(function draw(){
+  const w=cv.width,h=cv.height;cx.clearRect(0,0,w,h);
+  if(an&&playing)an.getByteFrequencyData(buf);else for(let i=0;i<128;i++)buf[i]*=.9;
+  const n=64,bw=w/n;let sum=0;
+  for(let i=0;i<n;i++){const v=buf[i]/255;sum+=v;const bh=Math.max(3,v*h);
+    const g=cx.createLinearGradient(0,h-bh,0,h);g.addColorStop(0,'#ff2bd6');g.addColorStop(1,'#00f0ff');
+    cx.fillStyle=g;cx.shadowColor='#00f0ff';cx.shadowBlur=12;cx.fillRect(i*bw+2,h-bh,bw-4,bh)}
+  energy+=((sum/n)-energy)*.2;
+  requestAnimationFrame(draw)})();
+</script>
+</body>
+</html>
